@@ -1,0 +1,31 @@
+/* Pagination.css */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-button {
+  width: 60px;
+  padding: 0.5rem;
+  color: gray;
+  cursor: pointer;
+}
+
+.pagination-button:hover {
+  color: black;
+}
+
+.pagination-button.prev,
+.pagination-button.next {
+  font-weight: bold;
+}
+
+.pagination-button[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-button.active {
+  color: #3b82f6;
+}
