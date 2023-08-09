@@ -1,21 +1,36 @@
 import { useState } from 'react';
 import Pagination from '../../components/components/Pagination';
 import './pagination.css';
-import CodeBox from '../../components/codeBox';
+import CodeBox from '../../components/CodeBox';
+import ParopsTable from '../../components/PropsTable';
+import TestInput from '../../components/TestInput';
 
 function PaginationPage() {
+  const [numOfContent, setNumOfContent] = useState(178);
+  const [showContent, setShowContent] = useState(10);
+  const [showButton, setShowButton] = useState(2);
   const [currentPage, setCurrentPage] = useState(1);
-  const numOfContent = 178;
-  const showContent = 10;
-  const showButton = 7;
-
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
+  //props 설명
+  const propsList = [
+    { name: 'numOfContent', type: 'number', description: '전체 데이터 수' },
+    { name: 'showContent', type: 'number', description: '한 페이지에 보여줄 데이터 수' },
+    { name: 'showButton', type: 'number', description: '페이지네이션 버튼 수' },
+    { name: 'currentPage', type: '(useState)-number', description: '현재 페이지 상태' },
+    {
+      name: 'setCurrentPage',
+      type: '(useState)-React.Dispatch<React.SetStateAction<number>>',
+      description: '현재 페이지 상태(set)',
+    },
+  ];
+
   return (
     <>
-      <div className="min-h-[400px] flex justify-center bg-base-100 rounded-2xl">
+      {/* 컴포넌트 */}
+      <div className="min-h-[300px] flex justify-center items-center items bg-base-100 rounded-2xl">
         <Pagination
           numOfContent={numOfContent}
           showContent={showContent}
@@ -24,6 +39,18 @@ function PaginationPage() {
           onPageChange={handlePageChange}
         />
       </div>
+
+      {/* 테스트 그룹 */}
+      <div className="w-[80%] m-auto flex justify-between my-10">
+        <TestInput description={'전체 데이터 수'} state={numOfContent} setState={setNumOfContent} />
+        <TestInput description={'한 페이지에 보여줄 데이터 수'} state={showContent} setState={setShowContent} />
+        <TestInput description={'페이지네이션 버튼 수'} state={showButton} setState={setShowButton} />
+      </div>
+
+      {/* props 설명 */}
+      <ParopsTable propsList={propsList} />
+
+      {/* component 코드 뷰 */}
       <CodeBox
         category="component"
         type="tsx"
@@ -86,6 +113,8 @@ const Pagination: React.FC<PaginationProps> = ({
 export default Pagination;
 `}
       />
+
+      {/* css 코드 뷰 */}
       <CodeBox category="css" type="css" url="\src\pages\pagination\pagination.css" />
     </>
   );

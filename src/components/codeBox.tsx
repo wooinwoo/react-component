@@ -1,18 +1,24 @@
 import { useEffect, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { dark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { BiSolidCopy } from 'react-icons/bi';
 
 const CodeBox = ({ category, url, type, code }: { category: string; url?: string; type: string; code?: string }) => {
   const [fileContent, setFileContent] = useState('');
 
-  useEffect(() => {
-    if (type === 'css') {
-      fetchFileContent();
-    } else {
-      setFileContent(code);
+  //! css 파일을 url로 불러오기
+  const fetchFileContent = async () => {
+    if (!url) return;
+    try {
+      const response = await fetch(url);
+      const text = await response.text();
+      const cssContent = extractCSS(text);
+      setFileContent(cssContent);
+    } catch (error) {
+      console.error('Error fetching file:', error);
     }
-  }, []);
-
+  };
+  //! 불러온 css 파일을 형식에 맞게 변환
   function extractCSS(bundleCode: string) {
     const regex = /(?<=const __vite__css = ")([\s\S]*?)(?=")/;
     const match = bundleCode.match(regex);
@@ -20,24 +26,37 @@ const CodeBox = ({ category, url, type, code }: { category: string; url?: string
     return formattedCss;
   }
 
-  const fetchFileContent = async () => {
+  //! 복사하기
+  const handleCopyClipBoard = async (text: string) => {
     try {
-      const response = await fetch(url);
-      const text = await response.text();
-      console.log(text);
-      const cssContent = extractCSS(text);
-      setFileContent(cssContent);
+      await navigator.clipboard.writeText(text);
 
-      console.log(cssContent);
+      alert('복사 되었습니다.');
     } catch (error) {
-      console.error('Error fetching file:', error);
+      alert('복사 실패' + error);
     }
   };
 
+  //
+  useEffect(() => {
+    if (type === 'css') {
+      fetchFileContent();
+    } else {
+      setFileContent(code ?? '');
+    }
+  }, []);
   return (
     <div className="my-10">
-      <h4 className="w-[80%] max-h-[400px] m-auto">{category}</h4>
-      <div className="display-pagination-css w-[80%] max-h-[500px] rounded-2xl m-auto  overflow-auto">
+      <h4 className="relative w-[80%] max-h-[400px] m-auto z-10 text-white">
+        {category}{' '}
+        <BiSolidCopy
+          className="absolute top-12 right-10 w-[20px] h-[20px] cursor-pointer"
+          onClick={() => {
+            handleCopyClipBoard(fileContent);
+          }}
+        />
+      </h4>
+      <div className="relative display-pagination-css w-[80%] max-h-[500px] rounded-2xl m-auto  overflow-auto">
         <SyntaxHighlighter language={type} style={dark}>
           {fileContent}
         </SyntaxHighlighter>
