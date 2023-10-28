@@ -349,43 +349,244 @@ async function periodicExcution(callback: any, interval: number) {
     clearInterval(timerId);
   };
 }
+
+//!------------
+const today = new Date();
+let currentMonth = today.getMonth();
+let currentYear = today.getFullYear();
+/**
+ * @returns {}
+ * - 캘린더
+ */
+function generateCalendar() {
+  // 이번달 첫날과 마지막날 요일 구하기
+  const firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay(); // 0:일, 1:월, 2:화, 3:수...
+  const lastDayOfWeek = new Date(currentYear, currentMonth + 1, 0).getDay(); // 0:일, 1:월, 2:화, 3:수...
+
+  const calendarWeeks =
+    (firstDayOfWeek === 6 && (lastDayOfWeek === 1 || lastDayOfWeek === 0)) ||
+    (firstDayOfWeek === 5 && lastDayOfWeek === 0)
+      ? 6
+      : 5;
+
+  const calendar = [];
+  let date = 1;
+  // 달력 객체 생성
+  for (let i = 0; i < calendarWeeks; i++) {
+    const week = [];
+    for (let j = 0; j < 7; j++) {
+      if (i === 0 && j < firstDayOfWeek) {
+        // 이번달 시작일 이전의 셀은 비어있음
+        week.push('');
+      } else if (i === calendarWeeks - 1 && lastDayOfWeek < j) {
+        //이번달 마지막일 이후의 셀은 비어있음
+      } else {
+        // 이번달 날짜의 셀을 생성
+        week.push(date);
+        date++;
+      }
+    }
+    calendar.push(week);
+  }
+  return calendar;
+}
+function prevMonth() {
+  currentMonth--;
+  if (currentMonth < 0) {
+    currentMonth = 11;
+    currentYear--;
+  }
+}
+function nextMonth() {
+  currentMonth++;
+  if (currentMonth > 11) {
+    currentMonth = 0;
+    currentYear++;
+  }
+}
+
+//!------------
+/**
+ * @param value
+ * @returns
+ * - empty 확인
+ */
+const isEmpty = (value: any) => {
+  if (typeof value === 'undefined' || value === null || value === '') {
+    return true;
+  } else {
+    return false;
+  }
+};
+
 //!------------
 /**
  * @returns {}
- * -
+ * -재귀 스크립트
  */
 //!------------
 /**
- * @returns {}
- * -
+ * @param {string} date
+ * @returns {string}
+ * - 년/월/일 포맷
  */
+function formatDateToSlash(date: string) {
+  if (!date) return;
+  if (date.length === 8) {
+    const regexPattern = /(\d{4})(\d{2})(\d{2})/;
+    return date.replace(regexPattern, '$1/$2/$3');
+  }
+  if (date.length === 16) {
+    const regexPattern = /(\d{4})(\d{2})(\d{2})(\d{4})(\d{2})(\d{2})/;
+    return date.replace(regexPattern, '$1/$2/$3 ~ $4/$5/$6');
+  } else if (date.length === 24) {
+    const regexPattern = /(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})/;
+    return date.replace(regexPattern, '$1/$2/$3 $4:$5 ~ $6/$7/$8 $9:$10');
+  } else {
+    return '';
+  }
+}
 //!------------
 /**
- * @returns {}
- * -
+ * @param {number} number
+ * @returns {string}
+ * - 숫자를 한글로 변환
  */
+function geKoreanNumber(number: number) {
+  const koreanNumber = ['', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구'];
+  const tenUnit = ['', '십', '백', '천'];
+  const tenThousandUnit = ['조', '억', '만', ''];
+  const unit = 10000;
+
+  let answer = '';
+
+  while (number > 0) {
+    const mod = number % unit;
+    const modToArray = mod.toString().split('');
+    const length = modToArray.length - 1;
+
+    const modToKorean = modToArray.reduce((acc, value, index) => {
+      const valueToNumber = +value;
+      if (!valueToNumber) return acc;
+      // 단위가 십 이상인 '일'글자는 출력하지 않는다. ex) 일십 -> 십
+      const numberToKorean = index < length && valueToNumber === 1 ? '' : koreanNumber[valueToNumber];
+      return `${acc}${numberToKorean}${tenUnit[length - index]}`;
+    }, '');
+
+    answer = `${modToKorean}${tenThousandUnit.pop()} ${answer}`;
+    number = Math.floor(number / unit);
+  }
+
+  return answer.replace();
+}
 //!------------
 /**
+ * @param {string} text
  * @returns {}
- * -
+ * - 휴대폰 번호 포맷
  */
+function formatPhoneNumber(text?: string) {
+  const phone = text ?? '';
+  const formatedPhoneNumber = phone.replace(/[^0-9]/g, '').replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`);
+  return formatedPhoneNumber;
+}
 //!------------
 /**
+ * @param {string} text
  * @returns {}
- * -
+ * - 회사 번호 포맷
  */
+function formatBusinessNumber(text?: string | null) {
+  if (!text) return;
+  const isOnlyNumberCheck = text.replace(/[^0-9]/g, '');
+  if (isOnlyNumberCheck.length < 1) return;
+  return isOnlyNumberCheck.replace(/^(\d{3})(\d{2})(\d{5})$/, `$1-$2-$3`);
+}
 //!------------
 /**
+ * @param {string} str
+ * @param {boolean} newL
  * @returns {}
- * -
+ * - 특수문자 치환 (string To HTML)
  */
+function decodeHTMLEntities(str: string, newL: boolean = true) {
+  if (str !== undefined && str !== null && str !== '') {
+    const parser = new DOMParser();
+    const dom = parser.parseFromString('<!doctype html><body>' + str, 'text/html');
+
+    if (newL) {
+      return dom.body.textContent?.replace(/\n/g, '<br>');
+    } else {
+      return dom.body.textContent?.replace('<br>', '');
+    }
+  }
+}
 //!------------
 /**
- * @returns {}
- * -
+ * @param {string} str
+ * @param {number} rowLimit
+ * @param {number} highLimit
+ * @param {string} reType //"bool" | ""
+ * @returns {string | boolean}
+ * - 글자 수 제한
+ * - string 출력 | 초과여부 출력 - retype="bool"
  */
+function characterLimit(str: string, rowLimit: number, highLimit: number, reType: string) {
+  if (rowLimit <= str.length && str.length <= highLimit) {
+    return reType !== 'bool' ? str : true;
+  }
+  if (rowLimit <= str.length && srcery.length > highLimit) {
+    return reType !== 'bool' ? str.substring(0, highLimit) : false;
+  }
+}
 //!------------
 /**
- * @returns {}
- * -
+ * @param {string} str
+ * @returns {string}
+ * - 특수문자 제거 후 텍스트와 줄바꿈만 출력
  */
+function extractCleanedText(str: string) {
+  const cleanedText = str.replace(/&[^;]+;|<[^>]+>/g, '');
+  const lines = cleanedText.split('\n');
+  const nonEmptyLines = lines.filter((line) => line.trim());
+  return nonEmptyLines;
+}
+
+export {
+  getParams,
+  deleteParamsQueryString,
+  isMobile,
+  isIos,
+  inOnline,
+  howManyThread,
+  whatLanguage,
+  whatOrientation,
+  saveToLocalStorage,
+  getFromLocalStorage,
+  updateLocalStorage,
+  removeFromLocalStorage,
+  saveToSessionStorage,
+  getFromSessionStorage,
+  updateSessionStorage,
+  removeFromSessionStorage,
+  setCookie,
+  getCookie,
+  getElementSizeById,
+  getHeaderData,
+  movePage,
+  generateRandomString,
+  getRandomNumber,
+  delayExecution,
+  periodicExcution,
+  generateCalendar,
+  prevMonth,
+  nextMonth,
+  isEmpty,
+  formatDateToSlash,
+  geKoreanNumber,
+  formatPhoneNumber,
+  formatBusinessNumber,
+  decodeHTMLEntities,
+  characterLimit,
+  extractCleanedText,
+};
