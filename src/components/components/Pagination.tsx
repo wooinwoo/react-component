@@ -15,7 +15,7 @@ const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   onPageChange,
 }) => {
-  const totalPages = Math.ceil(numOfContent / showContent);
+  const totalPages = Math.ceil(numOfContent / showContent); // 전체 페이지
 
   const startPage = Math.ceil(currentPage / showButton) * showButton - showButton + 1; //첫페이지
   const endPage = Math.min(startPage + showButton - 1, totalPages); //
